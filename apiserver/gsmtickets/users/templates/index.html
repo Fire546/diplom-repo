@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Для тестов API</title>
+</head>
+<body>
+    <h2>
+        Организации
+    </h2>
+    {% for org in orgs %}
+    {{ org.id }}, {{ org }} <br>
+    {% endfor %}
+    <h2>
+        Пользователи
+    </h2>
+    {% for user in users %}
+    {{user.id}}, {{ user }}, {{ user.organisation }}
+    {% endfor %}
+    <h2>
+        Заявки
+    </h2>
+    {% for ticket in tickets %}
+    {{ticket.id}}, {{ ticket.gsm }}, {{ ticket.quantity }} , {{ ticket.organisation }}, {{ ticket.type }}
+    {% endfor %}
+
+    <h2>
+        Распределенные талоны на пользователей
+    </h2>
+    {% for assigned_ticket in assigned_tickets %}
+    {{assigned_ticket.id}}, {{ assigned_ticket.tickets.gsm }}, {{ assigned_ticket.quantity }} , {{ assigned_ticket.user }}, {{ assigned_ticket.assign_time }}
+    {% endfor %}
+
+    <h2>
+        Оставшиеся талоны у водителей
+    </h2>
+    {% for i in drivers_tickets %}
+    {{ i }}
+    {% endfor %}
+    <form action="api/v1/assign_org" method='POST'>
+        <select name="user_id">
+            {% for user in users %}
+            <option value="{{ user.id }}">{{ user }}</option>
+            {% endfor %}
+        </select>
+        <select name="org_id">
+        {% for org in orgs %}
+        <option value="{{ org.id }}">{{ org }}</option>
+        {% endfor %}
+        </select>
+        <button type="submit" >go</button>
+    </form>
+
+    <form id="login_form">
+        <input type="email" name="email" required>
+        <input type="password" name="password" required >
+        <button type="submit" >go</button>
+    </form>
+    <form action="del_tickets" method="GET">
+        <button>Delete Tickets ALL</button>
+    </form>
+    <script src="{% static 'main.js' %}"></script>
+</body>
+</html>
