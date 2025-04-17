@@ -1,0 +1,13 @@
+# Python
+apiserver/venv/
+
+
+
+
+# React
+re_app/admin_app/node_modules/
+re_app/cassier_app/node_modules/
+re_app/m_app/node_modules/
+re_app/manager_app/node_modules/
+re_app/seller_manager_app/node_modules/
+
