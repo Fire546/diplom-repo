@@ -31,13 +31,16 @@ function DriversInfo() {
 
   const handleExport = () => {
     const exportData = [];
+
+  
+
   
     Object.entries(visibleData).forEach(([driver, fuels]) => {
       Object.entries(fuels).forEach(([fuel, qty]) => {
         exportData.push({
-          Водитель: driver,
+          'Водитель': driver,
           'Тип топлива': fuel,
-          Доступно: qty,
+          'Доступно': qty,
         });
       });
     });
@@ -47,6 +50,37 @@ function DriversInfo() {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Водители');
     XLSX.writeFile(workbook, 'drivers_info.xlsx');
   };
+
+  const handleUsedTicketsExport = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const resp = await fetch('http://127.0.0.1:8000/api/v1/used_tickets_info', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!resp.ok) throw new Error('Ошибка при получении использованных талонов');
+  
+      const result = await resp.json();
+      const usedData = result.data || [];
+  
+      const formatted = usedData.map(([user, gsm, quantity, used_time]) => ({
+        'Водитель': user,
+        'Тип топлива': gsm,
+        'Количество': quantity,
+        'Дата использования': used_time,
+      }));
+  
+      const worksheet = XLSX.utils.json_to_sheet(formatted);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Использование талонов');
+      XLSX.writeFile(workbook, 'used_tickets.xlsx');
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+  
   
 
   const availableDrivers = Object.keys(driversData);
@@ -77,8 +111,13 @@ function DriversInfo() {
       </div>
 
       <button onClick={handleExport} style={{ marginBottom: '15px' }}>
-        📥 Скачать Excel
+        📥 Скачать Excel(остатки)
       </button>
+
+      <button onClick={handleUsedTicketsExport} style={{ marginBottom: '15px', marginLeft: '10px' }}>
+        📄 Скачать данные по использованным талонам
+      </button>
+
 
       {Object.keys(visibleData).length === 0 ? (
         <p>Нет данных</p>

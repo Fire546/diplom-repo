@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 
 function DriversInfo() {
   const [driversData, setDriversData] = useState({});
@@ -27,10 +28,69 @@ function DriversInfo() {
     fetchDriversInfo();
   }, []);
 
+  const handleExport = () => {
+    const exportData = [];
+
+    Object.entries(driversData).forEach(([org, drivers]) => {
+      Object.entries(drivers).forEach(([driver, fuels]) => {
+        Object.entries(fuels).forEach(([fuel, qty]) => {
+          exportData.push({
+            Организация: org,
+            Водитель: driver,
+            'Тип топлива': fuel,
+            Доступно: qty,
+          });
+        });
+      });
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Остатки');
+    XLSX.writeFile(workbook, 'drivers_fuel_all.xlsx');
+  };
+
+  const handleUsedExport = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const resp = await fetch('http://127.0.0.1:8000/api/v1/used_tickets_info', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!resp.ok) throw new Error('Ошибка загрузки использованных талонов');
+
+      const json = await resp.json();
+      const usedData = json.data || [];
+
+      const formatted = usedData.map(([user, fuel, qty, date]) => ({
+        Водитель: user,
+        'Тип топлива': fuel,
+        Количество: qty,
+        'Дата использования': date,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(formatted);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Использовано');
+      XLSX.writeFile(workbook, 'used_tickets_all.xlsx');
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h2>Информация о талонах водителей</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      <div style={{ marginBottom: '15px' }}>
+        <button onClick={handleExport}>📥 Скачать данные таблицы</button>
+        <button onClick={handleUsedExport} style={{ marginLeft: '10px' }}>
+          📄 Скачать данные по использованию талонов
+        </button> 
+      </div>
 
       {Object.keys(driversData).length === 0 ? (
         <p>Нет данных</p>
@@ -44,7 +104,7 @@ function DriversInfo() {
               <th>Доступно</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody> 
             {Object.entries(driversData).map(([org, drivers]) => {
               const totalRows = Object.values(drivers).reduce(
                 (sum, fuels) => sum + Math.max(1, Object.keys(fuels).length),

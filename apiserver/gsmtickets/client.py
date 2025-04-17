@@ -4,7 +4,7 @@ base_url = 'http://127.0.0.1:8000/'
 first_name = 'Bob'
 last_name = 'Johnson'
 password = '123'
-email = 'bob@mail.ru'
+email = 'sarah@mail.ru'
 name = 'TOO "Solnyshko"'
 bin = '150619008589'
 org_reg_data = {
@@ -104,6 +104,9 @@ print(token)
 # resp = requests.post(url+'check_drivers_tickets', headers=headers, json={'gsm':'92', 'quantity': 100, 'token':token})
 # print(resp.json())
 
+# Информация по отпуску ГСМ по талонам с АЗС
+resp = requests.get(url+'used_tickets_info', headers=headers,)
+print(resp.json())
 
 # Задача(выполнена)
 # Водитель предъявлет qr код с приложения, который содержит его токен, тип и количество ГСМ, которые он хочет получить

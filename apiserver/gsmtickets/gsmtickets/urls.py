@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from users.views import  DeleteOrg, AdminDataAPI, RegAuth, DeleteUserAPI, delete, get_users, RegOrg, delete_orgs, AssignUserType, AssignOrg, web_page, users_list, AuthAPI, GetMyDrivers
-from tickets.views import CassierOperationsAPI, CheckDriversTicketsAPI, GetAllDriversInfoAPI, GetAllTicketsAPI, TicketsAPI, AssignedTicketsAPI, UsingTicketsAPI, del_tickets, ApproveTicketsAPI, DriversInfoApi
+from tickets.views import CassierOperationsAPI, UsedTicketsInfoAPI, CheckDriversTicketsAPI, GetAllDriversInfoAPI, GetAllTicketsAPI, TicketsAPI, AssignedTicketsAPI, UsingTicketsAPI, del_tickets, ApproveTicketsAPI, DriversInfoApi
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,6 +41,7 @@ urlpatterns = [
     path('api/v1/all_drivers_info', GetAllDriversInfoAPI.as_view()),
     path('api/v1/check_drivers_tickets', CheckDriversTicketsAPI.as_view()),
     path('api/v1/cassier_operations', CassierOperationsAPI.as_view()),
+    path('api/v1/used_tickets_info', UsedTicketsInfoAPI.as_view()),
 
     path('delete', delete),
     path('delete_orgs', delete_orgs),

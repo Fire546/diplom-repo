@@ -173,6 +173,20 @@ class CassierOperationsAPI(APIView):
             'data': data,
         })
     
+class UsedTicketsInfoAPI(APIView):
+    @authrequired(['admin', 'client_manager', 'manager'])
+    def get(self, request, user):
+        if user.type == 'client_manager':
+            manager = user
+            info = UsingTicketsData.objects.filter(user__organisation = manager.organisation)
+        if user.type == 'manager' or user.type == 'admin':
+            info = UsingTicketsData.objects.all()
+
+        data = [(str(x.user), x.gsm, x.quantity, x.used_time) for x in info]
+        return Response({
+            'data': data,
+        })
+    
 
 class GetAllTicketsAPI(APIView):
     @authrequired(['manager', 'admin'])
