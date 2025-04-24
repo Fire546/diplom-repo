@@ -55,7 +55,7 @@ function DriversInfo() {
 
   const handleUsedTicketsExport = async () => {
     if (!startDate || !endDate) {
-      alert("Пожалуйста, выберите обе даты");
+      setError("Пожалуйста, выберите обе даты");
       return;
     }
   
@@ -64,11 +64,11 @@ function DriversInfo() {
     const diff = (end - start) / (1000 * 60 * 60 * 24);
   
     if (diff < 0) {
-      alert("Дата конца не может быть раньше начала");
+      setError("Дата конца не может быть раньше начала");
       return;
     }
     if (diff > 93) {
-      alert("Интервал не может превышать 3 месяцев");
+      setError("Интервал не может превышать 3 месяцев");
       return;
     }
   
@@ -96,7 +96,7 @@ function DriversInfo() {
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Использование талонов');
       XLSX.writeFile(workbook, 'used_tickets.xlsx');
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
     }
   };
   
@@ -138,6 +138,8 @@ function DriversInfo() {
         <label>По: <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></label>
         <button onClick={handleUsedTicketsExport}>📄 Скачать данные по использованным талонам</button>
       </div>
+      
+
 
 
       {Object.keys(visibleData).length === 0 ? (

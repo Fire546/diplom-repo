@@ -6,12 +6,13 @@ from rest_framework.views import APIView
 from gsmtickets.settings import SECRET_KEY
 from .models import User, Organisation
 from tickets.models import Tickets, AssignedTickets
-from .utils import UserRegBase, UserAuthBase, validation, authrequired
+from .utils import UserRegBase, UserAuthBase, validation, authrequired, log_api_request
 from hashlib import md5
 import jwt
 import datetime
 
 class RegAuth(APIView):
+    @log_api_request
     @validation(UserRegBase)
     def post(self, request):
         data = request.data
@@ -41,6 +42,7 @@ class RegAuth(APIView):
         return Response({'success': f'User {first_name} {last_name} successfully registered ', 'token': token})
 
 class AuthAPI(APIView):
+    @log_api_request
     @validation(UserAuthBase)
     def post(self, request):
         data = request.data
@@ -60,6 +62,7 @@ class AuthAPI(APIView):
         return Response({'success': f'User {user.first_name} {user.last_name} successfully authorized ', 'token': token, 'user': f'{user.first_name} {user.last_name}'})
 
 class GetMyDrivers(APIView):
+    @log_api_request
     @authrequired(['client_manager', 'admin'])
     def get(self, request, user):
         drivers = User.objects.filter(organisation=user.organisation, type='driver')
@@ -71,6 +74,7 @@ class GetMyDrivers(APIView):
 
 
 class RegOrg(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def post(self, request, user):
         data = request.data
@@ -87,6 +91,7 @@ class RegOrg(APIView):
         return Response({
             'success': f'Организация {name} успешно зарегистрирована'
         })
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def get(self, request, user):
         orgs = Organisation.objects.all()
@@ -98,6 +103,7 @@ class RegOrg(APIView):
 
     
 class AssignUserType(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def post(self, request, user):
         types = ['client', 'manager', 'driver', 'admin', 'client_manager', 'cassier']
@@ -116,6 +122,7 @@ class AssignUserType(APIView):
         })
     
 class AssignOrg(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def post(self, request, user):
         data = request.data
@@ -131,6 +138,7 @@ class AssignOrg(APIView):
         })
     
 class DeleteOrg(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin',])
     def post(self, request, user):
         org = Organisation(id=request.data.get('org_id'))
@@ -190,6 +198,7 @@ def users_list(request):
     return JsonResponse({'users': users})
 
 class DeleteUserAPI(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def post(self, request, user):
         user = User.objects.get(id = request.data.get('user_id'))
@@ -199,6 +208,7 @@ class DeleteUserAPI(APIView):
         })
     
 class AdminDataAPI(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def get(self, request, user):
         users = User.objects.all()

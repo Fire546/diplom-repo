@@ -11,10 +11,12 @@ from users.utils import authrequired
 from hashlib import md5
 import jwt
 from datetime import datetime, timedelta
+from users.utils import log_api_request
 
 
 
 class TicketsAPI(APIView):
+    @log_api_request
     @authrequired(['admin', 'client_manager'])
     def post(self, request, user):
         data = request.data
@@ -24,7 +26,7 @@ class TicketsAPI(APIView):
         return Response({
             'success': f'Заявка успешно создана: {tickets.gsm}:{tickets.quantity}',
         })
-    
+    @log_api_request
     @authrequired(['admin', 'client_manager',])
     def get(self, request, user):
         tickets = Tickets.objects.filter(organisation = user.organisation)
@@ -36,6 +38,7 @@ class TicketsAPI(APIView):
 
 
 class ApproveTicketsAPI(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def post(self, request, user):
         data = request.data
@@ -49,6 +52,7 @@ class ApproveTicketsAPI(APIView):
 
 
 class AssignedTicketsAPI(APIView):
+    @log_api_request
     @authrequired(['admin', 'client_manager',])
     def post(self, request, user):
         data = request.data
@@ -67,6 +71,7 @@ class AssignedTicketsAPI(APIView):
     
 
 class CheckDriversTicketsAPI(APIView):
+    @log_api_request
     @authrequired(['admin', 'cassier'])
     def post(self,request, user):
         data = request.data
@@ -95,6 +100,7 @@ class CheckDriversTicketsAPI(APIView):
 
 
 class UsingTicketsAPI(APIView):
+    @log_api_request
     @authrequired(['cassier', 'admin',])
     def post(self,request, user):
         data = request.data
@@ -119,7 +125,7 @@ class UsingTicketsAPI(APIView):
         return Response({
             'success':'Операция прошла успешно!'
         })
-    
+    @log_api_request
     @authrequired(['admin', 'driver'])
     def get(self, request, user):
         assigned_tickets = AssignedTickets.objects.filter(user=user, quantity__gt = F('used_quantity'))
@@ -137,6 +143,7 @@ def del_tickets(request):
 
 
 class DriversInfoApi(APIView):
+    @log_api_request
     @authrequired(['admin', 'client_manager',])
     def get(self, request, user):
         assign_tickets = AssignedTickets.objects.filter(tickets__organisation = user.organisation, quantity__gt = F('used_quantity'))
@@ -160,6 +167,7 @@ class DriversInfoApi(APIView):
         })
     
 class CassierOperationsAPI(APIView):
+    @log_api_request
     @authrequired(['admin', 'cassier'])
     def get(self, request, user):
         today = datetime.today().date()  
@@ -174,6 +182,7 @@ class CassierOperationsAPI(APIView):
         })
     
 class UsedTicketsInfoAPI(APIView):
+    @log_api_request
     @authrequired(['admin', 'client_manager', 'manager'])
     def get(self, request, user):
         start_date_str = request.query_params.get("start")
@@ -207,6 +216,7 @@ class UsedTicketsInfoAPI(APIView):
     
 
 class GetAllTicketsAPI(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def get(self, request, user):
         tickets = Tickets.objects.all()
@@ -218,6 +228,7 @@ class GetAllTicketsAPI(APIView):
 
     
 class GetAllDriversInfoAPI(APIView):
+    @log_api_request
     @authrequired(['manager', 'admin'])
     def get(self,request, user):
         assign_tickets = AssignedTickets.objects.filter(quantity__gt = F('used_quantity'))

@@ -10,7 +10,10 @@ import datetime
 from users.models import User
 from tickets.models import AssignedTickets
 from gsmtickets.settings import SECRET_KEY
-
+import logging
+from functools import wraps
+from django.utils.timezone import now
+from jwt import decode, InvalidTokenError
 
 
 class UserRegBase(BaseModel):
@@ -24,7 +27,20 @@ class UserAuthBase(BaseModel):
     email : str = Field(...)
 
 
+def get_user_from_token(request):
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return 'Anonymous'
 
+        token = auth_header.split(' ')[1]
+        payload = decode(token, algorithms=['HS256'], key=SECRET_KEY)
+        user_id = payload.get('user_id')
+
+        user = User.objects.get(id=user_id)
+        return f"{user.first_name} {user.last_name} ({user.email})"
+    except (User.DoesNotExist, InvalidTokenError, IndexError, AttributeError, Exception):
+        return 'Anonymous'
 
 
 def validation(model: BaseModel = None, ):
@@ -71,3 +87,31 @@ def authrequired(user_type_required: list [str] = None, ):
 #     info = CharField(max_length=256)
 #     created_at = DateField()
 
+logger = logging.getLogger('api')
+
+def get_client_ip(request):
+    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded:
+        return x_forwarded.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
+
+def log_api_request(func):
+    @wraps(func)
+    def wrapper(self, request, *args, **kwargs):
+        user = getattr(request, 'user', None)
+        user_repr = get_user_from_token(request)
+        
+        response = func(self, request, *args, **kwargs)  # вызываем один раз
+
+        logger.info(
+            f"[{now().isoformat()}] "
+            f"User: {user_repr}, "
+            f"IP: {get_client_ip(request)}, "
+            f"Method: {request.method}, "
+            f"Path: {request.get_full_path()}, "
+            f"Data: {dict(request.data)}, "
+            f"Response: {response.status_code} - {getattr(response, 'data', '')}"
+        )
+
+        return response
+    return wrapper
