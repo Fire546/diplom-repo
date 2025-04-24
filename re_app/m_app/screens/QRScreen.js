@@ -22,7 +22,7 @@ export default function QRScreen({ route, navigation }) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Ваш QR-код</Text>
-      <Text style={styles.title}>{JSON.stringify(data)}</Text>
+      {/* <Text style={styles.title}>{JSON.stringify(data)}</Text> */}
 
       <View style={styles.qrWrapper}>
         <QRCode

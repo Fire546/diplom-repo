@@ -176,16 +176,34 @@ class CassierOperationsAPI(APIView):
 class UsedTicketsInfoAPI(APIView):
     @authrequired(['admin', 'client_manager', 'manager'])
     def get(self, request, user):
+        start_date_str = request.query_params.get("start")
+        end_date_str = request.query_params.get("end")
+
+        if not start_date_str or not end_date_str:
+            return Response({"error": "Нужно указать даты начала и конца"}, status=400)
+
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+        except ValueError:
+            return Response({"error": "Неверный формат даты (ожидается YYYY-MM-DD)"}, status=400)
+
+        if (end_date - start_date).days > 93:
+            return Response({"error": "Интервал не может быть больше 3 месяцев"}, status=400)
+
         if user.type == 'client_manager':
             manager = user
-            info = UsingTicketsData.objects.filter(user__organisation = manager.organisation)
-        if user.type == 'manager' or user.type == 'admin':
-            info = UsingTicketsData.objects.all()
+            info = UsingTicketsData.objects.filter(
+                user__organisation=manager.organisation,
+                used_time__range=(start_date, end_date + timedelta(days=1))
+            )
+        else:
+            info = UsingTicketsData.objects.filter(
+                used_time__range=(start_date, end_date + timedelta(days=1))
+            )
 
         data = [(str(x.user), x.gsm, x.quantity, x.used_time) for x in info]
-        return Response({
-            'data': data,
-        })
+        return Response({"data": data})
     
 
 class GetAllTicketsAPI(APIView):

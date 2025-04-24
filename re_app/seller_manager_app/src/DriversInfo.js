@@ -5,6 +5,8 @@ import * as XLSX from 'xlsx';
 function DriversInfo() {
   const [driversData, setDriversData] = useState({});
   const [error, setError] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const fetchDriversInfo = async () => {
@@ -51,30 +53,47 @@ function DriversInfo() {
   };
 
   const handleUsedExport = async () => {
-    const token = localStorage.getItem('token');
+    if (!startDate || !endDate) {
+      alert("Пожалуйста, выберите обе даты");
+      return;
+    }
+  
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diff = (end - start) / (1000 * 60 * 60 * 24);
+  
+    if (diff < 0) {
+      alert("Дата конца не может быть раньше начала");
+      return;
+    }
+    if (diff > 93) {
+      alert("Интервал не может превышать 3 месяцев");
+      return;
+    }
+  
     try {
-      const resp = await fetch('http://127.0.0.1:8000/api/v1/used_tickets_info', {
+      const token = localStorage.getItem('token');
+      const resp = await fetch(`http://127.0.0.1:8000/api/v1/used_tickets_info?start=${startDate}&end=${endDate}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      if (!resp.ok) throw new Error('Ошибка загрузки использованных талонов');
-
-      const json = await resp.json();
-      const usedData = json.data || [];
-
-      const formatted = usedData.map(([user, fuel, qty, date]) => ({
-        Водитель: user,
-        'Тип топлива': fuel,
-        Количество: qty,
-        'Дата использования': date,
+  
+      if (!resp.ok) throw new Error('Ошибка при получении использованных талонов');
+      const result = await resp.json();
+      const usedData = result.data || [];
+  
+      const formatted = usedData.map(([user, gsm, quantity, used_time]) => ({
+        'Водитель': user,
+        'Тип топлива': gsm,
+        'Количество': quantity,
+        'Дата использования': used_time,
       }));
-
+  
       const worksheet = XLSX.utils.json_to_sheet(formatted);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Использовано');
-      XLSX.writeFile(workbook, 'used_tickets_all.xlsx');
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Использование талонов');
+      XLSX.writeFile(workbook, 'used_tickets.xlsx');
     } catch (err) {
       alert(err.message);
     }
@@ -86,10 +105,12 @@ function DriversInfo() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <div style={{ marginBottom: '15px' }}>
+        <div>
+        <label>С: <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></label>
+        <label>По: <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} /></label>
+        <button onClick={handleUsedExport}>📄 Скачать данные по использованным талонам</button>
+      </div>
         <button onClick={handleExport}>📥 Скачать данные таблицы</button>
-        <button onClick={handleUsedExport} style={{ marginLeft: '10px' }}>
-          📄 Скачать данные по использованию талонов
-        </button> 
       </div>
 
       {Object.keys(driversData).length === 0 ? (

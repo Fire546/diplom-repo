@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BASE_URL = 'http://192.168.1.110:8000/api/v1/';
+const BASE_URL = 'http://172.28.0.156:8000/api/v1/';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
