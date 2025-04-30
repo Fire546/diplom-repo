@@ -12,46 +12,66 @@ function Manager() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  // Фильтрация
-  const filteredTickets = tickets.filter(([fuel, qty, used, date, status]) => {
-    const passFuel = fuelFilter === 'all' || fuel === fuelFilter;
-    const passStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'approved' && status === 'approved') ||
-      (statusFilter === 'pending' && status !== 'approved');
-  
-    const dateObj = new Date(date);
-    const passDateFrom = !dateFrom || dateObj >= new Date(dateFrom);
-    const passDateTo = !dateTo || dateObj <= new Date(dateTo);
-  
-    return passFuel && passStatus && passDateFrom && passDateTo;
-  });
+  const sortedTickets = [...tickets].sort((a, b) => new Date(b[3]) - new Date(a[3]));
+
+const filteredTickets = sortedTickets.filter(([fuel, qty, used, date, status]) => {
+  const passFuel = fuelFilter === 'all' || fuel === fuelFilter;
+  const passStatus =
+    statusFilter === 'all' ||
+    (statusFilter === 'approved' && status === 'approved') ||
+    (statusFilter === 'pending' && status !== 'approved');
+
+  const dateObj = new Date(date);
+  const passDateFrom = !dateFrom || dateObj >= new Date(dateFrom);
+  const passDateTo = !dateTo || dateObj <= new Date(dateTo);
+
+  return passFuel && passStatus && passDateFrom && passDateTo;
+});
   
 
 
   // Получение списка заявок
-  const fetchTickets = async () => {
+  const fetchTickets = async (startDate = null, endDate = null) => {
     const token = localStorage.getItem('token');
     if (!token) {
       setError('Нет токена');
       return;
     }
-
+  
+    // Формируем параметры запроса, если даты переданы
+    const params = new URLSearchParams();
+    if (startDate) params.append('start', startDate);
+    if (endDate) params.append('end', endDate);
+  
     try {
-      const resp = await fetch('http://127.0.0.1:8000/api/v1/tickets', {
+      const url = `http://127.0.0.1:8000/api/v1/tickets${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      const resp = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (!resp.ok) throw new Error('Ошибка получения заявок');
-
+  
       const data = await resp.json();
       setTickets(data.tickets);
     } catch (err) {
       setError(err.message);
     }
   };
+  
+  useEffect(() => {
+    // Если обе даты выбраны — фильтруем по ним
+    if (dateFrom && dateTo) {
+      fetchTickets(dateFrom, dateTo);
+    } else {
+      // Если хотя бы одной даты нет — просто последние 14 дней
+      fetchTickets();
+    }
+  }, [dateFrom, dateTo]);
+  
+  
 
   useEffect(() => {
     fetchTickets();
@@ -157,38 +177,47 @@ function Manager() {
 
 
       {/* Таблица заявок */}
-      <table border="1" cellPadding="8" cellSpacing="0">
-        <thead>
-          <tr>
-            <th>Топливо</th>
-            <th>Количество</th>
-            <th>Израсходовано</th>
-            <th>Время заказа</th>
-            <th>Тип</th>
-            <th>Действие</th>
-          </tr>
-        </thead>
-        <tbody>
-        {filteredTickets.map((t, i) => (
-          <tr key={i}>
-            <td>{t[0]}</td>
-            <td>{t[1]}</td>
-            <td>{t[2]}</td>
-            <td>{t[3]}</td>
-            <td>
-              {t[4] === 'approved' ? 'Заявка одобрена' : 'На рассмотрении'}
-            </td>
-            <td>
-              {t[4] === 'approved' ? (
-                <Link to={`/assign/${t[5]}`}>Распределить</Link>
-              ) : (
-                '-'
-              )}
-            </td>
-          </tr>
-        ))}
-        </tbody>
-      </table>
+      <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #ccc' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ position: 'sticky', top: 0, background: '#f5f5f5', zIndex: 1 }}>
+              <th>Топливо</th>
+              <th>Количество</th>
+              <th>Израсходовано</th>
+              <th>Время заказа</th>
+              <th>Тип</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTickets.map((t, i) => (
+              <tr key={i}>
+                <td>{t[0]}</td>
+                <td>{t[1]}</td>
+                <td>{t[2]}</td>
+                <td>{new Date(t[3]).toLocaleString('ru-RU', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}</td>
+
+                <td>{t[4] === 'approved' ? 'Заявка одобрена' : 'На рассмотрении'}</td>
+                <td>
+                  {t[4] === 'approved' ? (
+                    <Link to={`/assign/${t[5]}`}>Распределить</Link>
+                  ) : (
+                    '-'
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+
     </div>
   );
 }

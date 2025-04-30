@@ -7,7 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 
 
-const BASE_URL = 'http://172.28.0.156:8000/api/v1/';
+const BASE_URL = 'http://192.168.1.115:8000/api/v1/';
 
 export default function ProfileScreen({ navigation }) {
   const [token, setToken] = useState('');

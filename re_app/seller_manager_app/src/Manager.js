@@ -12,48 +12,66 @@ function Manager() {
   const [orgFilter, setOrgFilter] = useState('all');
   
 
+  const sortedTickets = [...tickets].sort((a, b) => new Date(b[4]) - new Date(a[4]));
+
   const availableOrgs = [...new Set(tickets.map(([org]) => org))];
-  
+
   // Фильтрация
-  const filteredTickets = tickets.filter(([org, fuel, qty, used, date, status]) => {
+  const filteredTickets = sortedTickets.filter(([org, fuel, qty, used, date, status]) => {
     const passOrg = orgFilter === 'all' || org === orgFilter;
     const passFuel = fuelFilter === 'all' || fuel === fuelFilter;
     const passStatus =
       statusFilter === 'all' ||
       (statusFilter === 'approved' && status === 'approved') ||
       (statusFilter === 'pending' && status !== 'approved');
-  
+
     const dateObj = new Date(date);
     const passDateFrom = !dateFrom || dateObj >= new Date(dateFrom);
     const passDateTo = !dateTo || dateObj <= new Date(dateTo);
-  
+
     return passOrg && passFuel && passStatus && passDateFrom && passDateTo;
   });
+
   
   
 
-  const fetchTickets = async () => {
+  const fetchTickets = async (startDate = null, endDate = null) => {
     const token = localStorage.getItem('token');
     if (!token) {
       setError('Нет токена');
       return;
     }
-
+  
+    const params = new URLSearchParams();
+    if (startDate) params.append('start', startDate);
+    if (endDate) params.append('end', endDate);
+  
     try {
-      const resp = await fetch('http://127.0.0.1:8000/api/v1/all_tickets', {
+      const url = `http://127.0.0.1:8000/api/v1/all_tickets${params.toString() ? `?${params.toString()}` : ''}`;
+      
+      const resp = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
+  
       if (!resp.ok) throw new Error('Ошибка получения заявок');
-
+  
       const data = await resp.json();
-      setTickets(data.tickets); // такой же формат: [[gsm, quantity, used_quantity, order_time, type, id]]
+      setTickets(data.tickets);
     } catch (err) {
       setError(err.message);
     }
   };
+  
+  useEffect(() => {
+    if (dateFrom && dateTo) {
+      fetchTickets(dateFrom, dateTo);
+    } else {
+      fetchTickets();
+    }
+  }, [dateFrom, dateTo]);
+  
 
   useEffect(() => {
     fetchTickets();
@@ -137,40 +155,47 @@ function Manager() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       {message && <p style={{ color: 'green' }}>{message}</p>}
 
-      <table border="1" cellPadding="8" cellSpacing="0">
-        <thead>
-          <tr>
-            <th>Организация</th>
-            <th>Топливо</th>
-            <th>Количество</th>
-            <th>Израсходовано</th>
-            <th>Время заказа</th>
-            <th>Тип</th>
-            <th>Действие</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredTickets.map((t, i) => (
-            <tr key={i}>
-              <td>{t[0]}</td>
-              <td>{t[1]}</td>
-              <td>{t[2]}</td>
-              <td>{t[3]}</td>
-              <td>{t[4]}</td>
-              <td>
-              {t[5] === 'approved' ? 'Заявка одобрена' : 'На рассмотрении'}
-            </td>
-              <td>
-                {t[5] === 'ordered' ? (
-                  <button onClick={() => handleApprove(t[6])}>Одобрить</button>
-                ) : (
-                  "Одобрено"
-                )}
-              </td>
+      <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #ccc' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ position: 'sticky', top: 0, background: '#f5f5f5', zIndex: 1 }}>
+              <th>Организация</th>
+              <th>Топливо</th>
+              <th>Количество</th>
+              <th>Израсходовано</th>
+              <th>Время заказа</th>
+              <th>Тип</th>
+              <th>Действие</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredTickets.map((t, i) => (
+              <tr key={i}>
+                <td>{t[0]}</td>
+                <td>{t[1]}</td>
+                <td>{t[2]}</td>
+                <td>{t[3]}</td>
+                <td>{new Date(t[4]).toLocaleString('ru-RU', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}</td>
+                <td>{t[5] === 'approved' ? 'Заявка одобрена' : 'На рассмотрении'}</td>
+                <td>
+                  {t[5] === 'ordered' ? (
+                    <button onClick={() => handleApprove(t[6])}>Одобрить</button>
+                  ) : (
+                    'Одобрено'
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
     </div>
   );
 }

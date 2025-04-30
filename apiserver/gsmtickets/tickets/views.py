@@ -29,8 +29,27 @@ class TicketsAPI(APIView):
     @log_api_request
     @authrequired(['admin', 'client_manager',])
     def get(self, request, user):
-        tickets = Tickets.objects.filter(organisation = user.organisation)
-        data = [[x.gsm, x.quantity, x.used_quantity, x.order_time, x.type, x.id]  for x in tickets]
+        start_str = request.query_params.get('start')
+        end_str = request.query_params.get('end')
+
+        if start_str and end_str:
+            try:
+                start_date = datetime.fromisoformat(start_str)
+                end_date = datetime.fromisoformat(end_str)
+            except ValueError:
+                return Response({'error': 'Неверный формат даты. Используйте ISO формат: YYYY-MM-DD'}, status=400)
+        else:
+            # По умолчанию — последние 14 дней
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=14)
+
+        tickets = Tickets.objects.filter(
+            organisation=user.organisation,
+            order_time__range=(start_date, end_date)
+        ).order_by('-order_time')
+
+        data = [[x.gsm, x.quantity, x.used_quantity, x.order_time, x.type, x.id] for x in tickets]
+
         return Response({
             'tickets': data
         })
@@ -219,11 +238,34 @@ class GetAllTicketsAPI(APIView):
     @log_api_request
     @authrequired(['manager', 'admin'])
     def get(self, request, user):
-        tickets = Tickets.objects.all()
-        data = [[x.organisation.name, x.gsm, x.quantity, x.used_quantity, x.order_time, x.type, x.id]  for x in tickets]
-        return Response({
-            'tickets': data
-        })
+        start_str = request.query_params.get('start')
+        end_str = request.query_params.get('end')
+
+        if start_str and end_str:
+            try:
+                start_date = datetime.fromisoformat(start_str)
+                end_date = datetime.fromisoformat(end_str)
+            except ValueError:
+                return Response({'error': 'Неверный формат даты. Используйте YYYY-MM-DD'}, status=400)
+        else:
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=14)
+
+        tickets = Tickets.objects.filter(
+            order_time__range=(start_date, end_date)
+        ).order_by('-order_time')
+
+        data = [[
+            x.organisation.name,
+            x.gsm,
+            x.quantity,
+            x.used_quantity,
+            x.order_time,
+            x.type,
+            x.id
+        ] for x in tickets]
+
+        return Response({ 'tickets': data })
     
 
     

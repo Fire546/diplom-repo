@@ -53,7 +53,6 @@ print(token)
 # print(resp)
 
 # Создание заявки
-
 # resp = requests.post(url+'tickets', headers=headers, json={'gsm': '95', 'quantity':'1000'})
 # print(resp.json())
 
@@ -105,8 +104,8 @@ print(token)
 # print(resp.json())
 
 # Информация по отпуску ГСМ по талонам с АЗС
-resp = requests.get(url+'used_tickets_info', headers=headers,)
-print(resp.json())
+# resp = requests.get(url+'used_tickets_info', headers=headers,)
+# print(resp.json())
 
 # Задача(выполнена)
 # Водитель предъявлет qr код с приложения, который содержит его токен, тип и количество ГСМ, которые он хочет получить
