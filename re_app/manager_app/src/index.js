@@ -7,6 +7,8 @@ import Login from './Login';
 import Manager from './Manager';
 import AssignTicket from './AssignTicket';
 import DriversInfo from './DriversInfo';
+import ChangePassword from './changePassword';
+import Register from './Register';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -18,6 +20,9 @@ const router = createBrowserRouter([
       { path: 'manager', element: <Manager /> },
       { path: 'assign/:id', element: <AssignTicket /> },
       { path: 'drivers', element: <DriversInfo /> },
+      { path: 'change_password', element: <ChangePassword /> },
+      { path: 'register', element: <Register /> },
+      
     ]
   }
 ]);

@@ -12,12 +12,12 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     const authData = {
       email: login,
       password: password,
     };
-
+  
     try {
       const resp = await fetch('http://localhost:8000/api/v1/users_auth', {
         method: 'POST',
@@ -26,26 +26,27 @@ function Login() {
         },
         body: JSON.stringify(authData),
       });
-
+  
       if (!resp.ok) {
         throw new Error('Ошибка авторизации');
       }
-
+  
       const data = await resp.json();
-      console.log(data)
       const token = data.token;
-      
-
+      const role = data.role;
+  
+      if (role !== 'client_manager') {
+        throw new Error('Доступ запрещён');
+      }
+  
       localStorage.setItem('token', token);
-      
-
       navigate('/manager');
-
-
+  
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Произошла ошибка');
     }
   };
+  
 
   return (
     <div style={{ maxWidth: '300px', margin: 'auto' }}>
@@ -72,6 +73,10 @@ function Login() {
         {error && <p style={{ color: 'red' }}>{error}</p>}
         <button type="submit">Войти</button>
       </form>
+      <p style={{ marginTop: '10px' }}>
+        Нет аккаунта? <a href="/register">Зарегистрироваться</a>
+      </p>
+
     </div>
   );
 }

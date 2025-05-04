@@ -109,7 +109,8 @@ const filteredTickets = sortedTickets.filter(([fuel, qty, used, date, status]) =
   return (
     <div style={{ padding: '20px' }}>
       <h2>Панель менеджера</h2>
-
+      <Link to="/change_password">Сменить пароль</Link>
+      <br></br>
       <Link to="/drivers" style={{ display: 'inline-block', marginBottom: '15px' }}>
         Посмотреть информацию о водителях
       </Link>

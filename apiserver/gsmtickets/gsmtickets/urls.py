@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from users.views import  DeleteOrg, AdminDataAPI, RegAuth, DeleteUserAPI, delete, get_users, RegOrg, delete_orgs, AssignUserType, AssignOrg, web_page, users_list, AuthAPI, GetMyDrivers
+from users.views import  DeleteOrg, ChangePassAPI, AdminDataAPI, RegAuth, DeleteUserAPI, delete, get_users, RegOrg, delete_orgs, AssignUserType, AssignOrg, web_page, users_list, AuthAPI, GetMyDrivers
 from tickets.views import CassierOperationsAPI, UsedTicketsInfoAPI, CheckDriversTicketsAPI, GetAllDriversInfoAPI, GetAllTicketsAPI, TicketsAPI, AssignedTicketsAPI, UsingTicketsAPI, del_tickets, ApproveTicketsAPI, DriversInfoApi
 
 urlpatterns = [
@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/v1/get_drivers', GetMyDrivers.as_view()),
     path('api/v1/delete_user', DeleteUserAPI.as_view()),
     path('api/v1/admin_data', AdminDataAPI.as_view()),
+    path('api/v1/change_pass', ChangePassAPI.as_view()),
     
     
     path('api/v1/tickets', TicketsAPI.as_view()),

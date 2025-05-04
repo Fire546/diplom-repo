@@ -59,7 +59,24 @@ class AuthAPI(APIView):
             'lifetime': life_time,
             'user_id': str(user.id),
         }, key=SECRET_KEY)
-        return Response({'success': f'User {user.first_name} {user.last_name} successfully authorized ', 'token': token, 'user': f'{user.first_name} {user.last_name}'})
+        return Response({'success': f'User {user.first_name} {user.last_name} successfully authorized ', 'token': token, 'user': f'{user.first_name} {user.last_name}', 'role': user.type})
+
+
+class ChangePassAPI(APIView):
+    @log_api_request
+    @authrequired([])
+    def post(self, request, user):
+        data = request.data
+        old_pass = data.get('old_pass')
+        old_pass = md5(old_pass.encode()).hexdigest()
+        if old_pass == user.password:
+            new_pass = data.get('new_pass')
+            new_pass = md5(new_pass.encode()).hexdigest()
+            user.password = new_pass
+            user.save()
+            return Response({'success': 'Password changed'})
+        return Response({'error': 'Старый пароль не совпадает с введенным'}) 
+            
 
 class GetMyDrivers(APIView):
     @log_api_request
