@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 function AdminPanel() {
   const [users, setUsers] = useState([]);
@@ -6,7 +7,16 @@ function AdminPanel() {
   const [message, setMessage] = useState('');
   const [orgToAssign, setOrgToAssign] = useState('');
   const [orgToDelete, setOrgToDelete] = useState('');
+  const [searchName, setSearchName] = useState('');
+  const [searchOrg, setSearchOrg] = useState('');
   const token = localStorage.getItem('token');
+
+  const filteredUsers = users.filter(([_, name, __, org]) => {
+    const matchesName = name.toLowerCase().includes(searchName.toLowerCase());
+    const matchesOrg = (org || '').toLowerCase().includes(searchOrg.toLowerCase());
+    return matchesName && matchesOrg;
+  });
+  
 
 
 
@@ -41,6 +51,52 @@ function AdminPanel() {
   useEffect(() => {
     fetchAdminData();
   }, []);
+
+  function SearchableSelect({ value, onChange, options, placeholder }) {
+    const [search, setSearch] = useState('');
+  
+    const filtered = options.filter(([_, name]) =>
+      name.toLowerCase().includes(search.toLowerCase())
+    );
+  
+    return (
+      <div style={{ marginBottom: '10px', maxWidth: '300px' }}>
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            padding: '6px 10px',
+            marginBottom: '5px',
+            width: '100%',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            boxSizing: 'border-box'
+          }}
+        />
+        <select
+          value={value}
+          onChange={onChange}
+          style={{
+            width: '100%',
+            padding: '6px 10px',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            maxHeight: '120px',
+            overflowY: 'auto'
+          }}
+        >
+          <option value="">Выберите</option>
+          {filtered.map(([id, name]) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+  
+  
 
   // Создание пользователя
   const handleRegister = async (e) => {
@@ -121,7 +177,8 @@ function AdminPanel() {
     <div style={{ padding: '20px' }}>
       <h2>Панель администратора</h2>
       {message && <p style={{ color: 'green' }}>{message}</p>}
-
+      <Link to="/change_password">Сменить пароль</Link>
+      <br></br>
       {/* Создание пользователя */}
       <section style={{ marginBottom: '20px' }}>
         <h3>Создать пользователя</h3>
@@ -160,8 +217,22 @@ function AdminPanel() {
 
 
         {/* Пользователи с ролями и организациями */}
-      <section style={{ marginTop: '30px' }}>
         <h3>Список пользователей</h3>
+        <input
+          type="text"
+          placeholder="Поиск по имени"
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          style={{ marginRight: '10px' }}
+        />
+        <input
+          type="text"
+          placeholder="Поиск по организации"
+          value={searchOrg}
+          onChange={(e) => setSearchOrg(e.target.value)}
+        />
+      <section style={{ marginTop: '30px' }}>
+        <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '20px' }}>
         <table border="1" cellPadding="8" cellSpacing="0">
             <thead>
             <tr>
@@ -171,7 +242,7 @@ function AdminPanel() {
             </tr>
             </thead>
             <tbody>
-            {users.map(([id, name, type, org]) => (
+            {filteredUsers.map(([id, name, type, org]) => (
                 <tr key={id}>
                 <td>{name}</td>
                 <td>{type}</td>
@@ -180,6 +251,7 @@ function AdminPanel() {
             ))}
             </tbody>
         </table>
+            </div>
         </section>
 
         {/* Создание организации */}
@@ -225,19 +297,20 @@ function AdminPanel() {
         <section style={{ marginTop: '30px' }}>
             <h3>Привязать пользователя к организации</h3>
 
-            <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
-                <option value="">Выберите пользователя</option>
-                {users.map(([id, name]) => (
-                <option key={id} value={id}>{name}</option>
-                ))}
-            </select>
+            <SearchableSelect
+              value={selectedUserId}
+              onChange={(e) => setSelectedUserId(e.target.value)}
+              options={users.map(([id, name]) => [id, name])}
+              placeholder="Поиск пользователя"
+            />
 
-            <select value={orgToAssign} onChange={(e) => setOrgToAssign(e.target.value)}>
-                <option value="">Выберите организацию</option>
-                {organisations.map(([id, name]) => (
-                <option key={id} value={id}>{name}</option>
-                ))}
-            </select>
+            <SearchableSelect
+              value={orgToAssign}
+              onChange={(e) => setOrgToAssign(e.target.value)}
+              options={organisations}
+              placeholder="Поиск организации"
+            />
+
 
             <button
                 onClick={async () => {
@@ -318,12 +391,12 @@ function AdminPanel() {
       {/* Назначение роли */}
       <section style={{ marginBottom: '20px' }}>
         <h3>Назначить роль пользователю</h3>
-        <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
-          <option value="">Выберите пользователя</option>
-          {users.map(([id, name]) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-        </select>
+        <SearchableSelect
+          value={selectedUserId}
+          onChange={(e) => setSelectedUserId(e.target.value)}
+          options={users.map(([id, name]) => [id, name])}
+          placeholder="Поиск пользователя"
+        />
 
         <select value={userRole} onChange={(e) => setUserRole(e.target.value)}>
           <option value="">Выберите роль</option>
@@ -340,12 +413,12 @@ function AdminPanel() {
       {/* Удаление пользователя */}
       <section>
         <h3>Удалить пользователя</h3>
-        <select value={selectedUserId} onChange={(e) => setSelectedUserId(e.target.value)}>
-          <option value="">Выберите пользователя</option>
-          {users.map(([id, name]) => (
-            <option key={id} value={id}>{name}</option>
-          ))}
-        </select>
+        <SearchableSelect
+          value={selectedUserId}
+          onChange={(e) => setSelectedUserId(e.target.value)}
+          options={users.map(([id, name]) => [id, name])}
+          placeholder="Поиск пользователя"
+        />
         <button onClick={handleDeleteUser}>Удалить</button>
       </section>
     </div>

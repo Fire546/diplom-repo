@@ -104,6 +104,8 @@ function Manager() {
 
   return (
     <div style={{ padding: '20px' }}>
+      <Link to="/change_password">Сменить пароль</Link>
+      <br></br>
       <Link to="/drivers" style={{ display: 'inline-block', marginBottom: '15px' }}>
         Посмотреть информацию о водителях
       </Link>

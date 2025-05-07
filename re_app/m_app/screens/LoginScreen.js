@@ -24,6 +24,11 @@ export default function LoginScreen({ navigation }) {
       if (response.status === 200) {
         const data = await response.json();
         const token = data.token;
+        const role = data.role;
+        
+      if (role !== 'driver') {
+        throw new Error(`Доступ запрещён`);
+      }
 
         // Сохраняем токен
         await AsyncStorage.setItem('token', token);
@@ -34,7 +39,7 @@ export default function LoginScreen({ navigation }) {
         Alert.alert('Ошибка авторизации', 'Неверный email или пароль');
       }
     } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось подключиться к серверу');
+      Alert.alert(error.message);
       console.log(error);
     }
   };

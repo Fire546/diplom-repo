@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './screens/LoginScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import QRScreen from './screens/QRScreen';
+import ChangePasswordScreen from './screens/ChangePasswordScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,6 +16,7 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Вход' }} />
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Профиль' }} />
         <Stack.Screen name="QR" component={QRScreen} options={{ title: 'QR-код' }} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: 'Смена пароля' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App';
 import Login from './Login';
 import AdminPanel from './AdminPanel'
+import ChangePassword from './changePassword';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Login /> },
       { path: 'admin_panel', element: <AdminPanel /> },
+      { path: 'change_password', element: <ChangePassword /> },
     ]
   }
 ]);

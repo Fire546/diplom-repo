@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 function Cassier() {
   const [qrData, setQrData] = useState('');
@@ -125,6 +126,8 @@ function Cassier() {
 
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: 'auto' }}>
+      <Link to="/change_password">Сменить пароль</Link>
+      <br></br>
       <h2>Сканирование талонов</h2>
 
         {successMsg && <p style={{ color: 'green' }}>{successMsg}</p>}

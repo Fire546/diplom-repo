@@ -34,6 +34,14 @@ function Login() {
       const data = await resp.json();
       console.log(data)
       const token = data.token;
+      const role = data.role;
+
+      
+      const allowedRoles = ['manager', 'admin'];
+
+      if (!allowedRoles.includes(role)) {
+        throw new Error('Доступ запрещён');
+      }
       
 
       localStorage.setItem('token', token);

@@ -90,6 +90,10 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.profileCard}>
         <Text style={styles.userName}>Добро пожаловать,</Text>
         <Text style={styles.userBold}>{userData.user}</Text>
+        <View style={{ marginTop: 20 }}>
+          <Button title="Сменить пароль" onPress={() => navigation.navigate('ChangePassword')} color="#777" />
+        </View>
+
 
         <View style={styles.fuelInfo}>
           <Text style={styles.fuelRow}>⛽ АИ-92: <Text style={styles.fuelAmount}>{userData['92']}</Text></Text>
