@@ -69,7 +69,7 @@ function AssignTicket() {
 
   return (
     <div style={{ maxWidth: '400px', margin: 'auto' }}>
-      <h2>Распределение заявки #{id}</h2>
+      <h2>Распределение заявки</h2>
       <form onSubmit={handleSubmit}>
         <div>
           <label>Водитель:</label>

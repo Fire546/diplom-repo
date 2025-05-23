@@ -5,9 +5,11 @@ import { Picker } from '@react-native-picker/picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
+import BASE_URL from '../config.js';
 
 
-const BASE_URL = 'http://192.168.1.115:8000/api/v1/';
+// const BASE_URL = 'http://192.168.1.101:8000/api/v1/';
+
 
 export default function ProfileScreen({ navigation }) {
   const [token, setToken] = useState('');
